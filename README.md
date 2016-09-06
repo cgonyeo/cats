@@ -1,4 +1,4 @@
-# CATS: __C__omputer Science House __A__utomated __T__ube __S__ystem
+# CATS: Computer science house Automated Tube System
 
 CATS is an open source automated [pneumatic tube system][1] developed for the
 Computer Science House at RIT.

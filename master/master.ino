@@ -275,9 +275,13 @@ struct Request *requests = NULL;
 
 // Adds a request with from as the starting terminal and to as the ending
 // terminal. Does nothing if a request with a start of from is already queued.
-//
-// TODO: do nothing if a request with a start of from is already queued
 void addRequest(uint8_t from, uint8_t to) {
+    Request *existing = getRequest(from);
+    if(existing != NULL) {
+        // We already have a request in the queue from this guy!
+        // Let's just ignore this.
+        return;
+    }
     Request r =
         {
             .from = from,
@@ -300,15 +304,15 @@ void finishRequest() {
     requests = (Request *)realloc(requests, numRequests);
 }
 
-// Gets the request that has from as the starting point
-struct Request getRequest(uint8_t from) {
+// Gets the request that has from as the starting point. Returns NULL if no
+// such request exists.
+struct Request *getRequest(uint8_t from) {
     for(int i = 0; i < numRequests; i++) {
-        if(requests[i].from == from) {
-            return requests[i];
+        if(requests[i].from == from && requests[i].state != Cancelled) {
+            return &requests[i];
         }
     }
-    // TODO: error
-    return requests[0];
+    return NULL;
 }
 
 // Marks the request that has from as its starting point as cancelled.
@@ -418,13 +422,24 @@ bool pathIsConfigured(struct Path p) {
     return allConfigured;
 }
 
+enum VacuumState {
+    VPulling,
+    VPushing
+};
+
+// This may be necessary due to a g++ bug?!?
+void configVacuum(VacuumState state);
+
 // Configures the vacuum to push or pull.
-void configVacuum(bool pull) {
+void configVacuum(VacuumState state) {
     uint8_t msg;
-    if(pull) {
-        msg = CHANGE_TO_TUBE_1;
-    } else {
-        msg = CHANGE_TO_TUBE_3;
+    switch(state) {
+        case VPulling:
+            msg = CHANGE_TO_TUBE_0;
+            break;
+        case VPushing:
+            msg = CHANGE_TO_TUBE_1;
+            break;
     }
     writeMsgAndExpectAck(
         {
@@ -608,10 +623,14 @@ void loop()
                 // if the capsule hasn't entered the system yet. Once the
                 // capsule has entered the system, the request is no longer
                 // cancellable.
-                Request requestToCancel = getRequest(resp.id); // TODO: handle not existing
-                if(requestToCancel.state == Queued ||
-                   requestToCancel.state == ConfigForPull ||
-                   requestToCancel.state == ReadyToPull) {
+                Request *requestToCancel = getRequest(resp.id);
+                if(requestToCancel == NULL) {
+                    // This request doesn't exist! Let's just ignore this...
+                    break;
+                }
+                if(requestToCancel->state == Queued ||
+                   requestToCancel->state == ConfigForPull ||
+                   requestToCancel->state == ReadyToPull) {
                     writeMsgAndExpectAck(
                         {
                             .id = MY_ID,
@@ -630,7 +649,7 @@ void loop()
                         {
                             .id = MY_ID,
                             .message = CLEAR_INCOMING,
-                            .data = requestToCancel.to
+                            .data = requestToCancel->to
                         }
                     );
                     cancelRequest(resp.id);
@@ -653,7 +672,7 @@ void loop()
                 // The top request is queued, let's send out configuration
                 // instructions.
                 configureForPath(curr.fromPath);
-                configVacuum(true);
+                configVacuum(VPulling);
                 curr.state = ConfigForPull;
                 break;
             case ConfigForPull: {
@@ -688,7 +707,7 @@ void loop()
                 if(curr.fromPath.pathNodes[0].packetReached) {
                     stopVacuum();
                     configureForPath(curr.toPath);
-                    configVacuum(false);
+                    configVacuum(VPushing);
                     curr.state = ConfigForPush;
                 }
                 break;

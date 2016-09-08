@@ -1,7 +1,7 @@
 # CATS: Computer science house Automated Tube System
 
 CATS is an open source automated [pneumatic tube system][1] developed for the
-Computer Science House at RIT.
+[Computer Science House at RIT][2].
 
 ## Wait, what is it?
 
@@ -14,8 +14,8 @@ Walk up to one of the endpoints of the system, grab an empty capsule and put
 something inside of it, press the button for where you want it to go, wait for
 the LED to say the system is ready, put the capsule in the tube.
 
-Inspired by and based on the [c3 Seidenstrasse][2] that I saw in operation at
-[32c3][3], with some improvements.
+Inspired by and based on the [c3 Seidenstrasse][3] that I saw in operation at
+[32c3][4], with some improvements.
 
 ## Why would you build this?
 
@@ -34,5 +34,6 @@ used to build the system.
 Incomplete. Come back later. 
 
 [1]: https://en.wikipedia.org/wiki/Pneumatic_tube
-[2]: https://twitter.com/c3seidenstrasse
-[3]: https://events.ccc.de/congress/2015/wiki/Static:Main_Page
+[2]: https://csh.rit.edu/
+[3]: https://twitter.com/c3seidenstrasse
+[4]: https://events.ccc.de/congress/2015/wiki/Static:Main_Page

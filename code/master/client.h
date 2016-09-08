@@ -1,7 +1,7 @@
 #ifndef CLIENT
 #define CLIENT
 
-#include <SoftwareSerial.h>
+#include "shared/shared.h"
 #include "layout.h"
 
 // flattenedClientTree and numClients are both generated during program setup
@@ -13,5 +13,6 @@ void walkTree(Client tree, void (*walkFunc) (Client, void *), void *data);
 void clientCounter(Client c, void *data);
 void flattener(Client c, void *data);
 void initClients();
+bool hasChild(uint8_t id, Client tree);
 
 #endif

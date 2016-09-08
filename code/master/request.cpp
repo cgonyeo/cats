@@ -1,3 +1,5 @@
+#include "request.h"
+
 // The number of requests currently queued (this includes the active request),
 // and the list of requests.
 int numRequests = 0;

@@ -1,6 +1,9 @@
 #ifndef REQUEST
 #define REQUEST
 
+#include "shared/shared.h"
+#include "path.h"
+
 // All the different states a request can be in
 typedef enum RequestState {
     Queued,         // The request has been acknowledged by the system, and is

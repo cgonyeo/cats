@@ -1,3 +1,4 @@
+#include "path.h"
 
 struct Path findPathHelper(uint8_t id, Client tree, struct Path p) {
     if(tree.id == id) {

@@ -1,73 +1,9 @@
-#include <SoftwareSerial.h>
-
 #include "shared/shared.h"
 #include "client.h"
 #include "path.h"
 #include "request.h"
 #include "config.h"
-
-// The ID of this arduino
-#define MY_ID 0
-
-// Stuff for the RS485 communications
-#define SSerialRX        10  //Serial Receive pin
-#define SSerialTX        11  //Serial Transmit pin
-#define SSerialTxControl 3   //RS485 Direction control
-#define RS485Transmit    HIGH
-#define RS485Receive     LOW
-#define Pin13LED         13
-SoftwareSerial RS485Serial(SSerialRX, SSerialTX); // RX, TX
-
-// A Message represents a message sent over the wire.
-struct Message {
-    uint8_t id;      // The sender of the message
-    uint8_t message; // The message type (see #define's earlier in this file)
-    uint8_t data;    // An arbitrary byte of data, meaning dependent on type
-};
-
-
-// Writes out the given message to the network, and then waits for and returns
-// the reply.
-struct Message writeMsg(struct Message msg) {
-    digitalWrite(SSerialTxControl, RS485Transmit);  // Enable RS485 Transmit   
-    RS485Serial.write(msg.id);
-    RS485Serial.write(msg.message);
-    RS485Serial.write(msg.data);
-    digitalWrite(SSerialTxControl, RS485Receive);  // Disable RS485 Transmit       
-
-    int bytesReceived = 0;
-    Message receivedMsg;
-    while(true) {
-        if(RS485Serial.available()) {
-            uint8_t data = RS485Serial.read();
-            switch(bytesReceived) {
-                case 0:
-                    if(data != msg.data) {
-                        // TODO WOAH WTF
-                        // got reply from wrong client?!?!
-                    }
-                    receivedMsg.id = data;
-                    break;
-                case 1:
-                    receivedMsg.message = data;
-                    break;
-                case 3:
-                    receivedMsg.data = data;
-                    return receivedMsg;
-            };
-            bytesReceived++;
-        }
-    }
-}
-
-// Writes out the given message to the network, waits for the reply, checks
-// that the reply was an ACKNOWLEDGE, and doesn't return the reply.
-void writeMsgAndExpectAck(struct Message msg) {
-    Message reply = writeMsg(msg);
-    if(reply.message != ACKNOWLEDGED) {
-        // TODO WOAH WTF
-    }
-}
+#include "message.h"
 
 // setup, as per arduino tooling, runs once when the arduino starts.
 void setup()
@@ -114,9 +50,9 @@ void loop()
     // Iterate over each client, asking it for a status update.
     for(int i = 0; i < numClients; i++) {
         // Ask the next guy for their status
-        Message resp = writeMsg(
+        Message resp = writeMsgMaster(
             {
-                .id = MY_ID,
+                .id = MASTER_ID,
                 .message = STATUS_UPDATE,
                 .data = (uint8_t)flattenedClientTree[i].id
             }
@@ -148,14 +84,14 @@ void loop()
                 // have an incoming capsule.
                 writeMsgAndExpectAck(
                     {
-                        .id = MY_ID,
+                        .id = MASTER_ID,
                         .message = REQUEST_QUEUED,
                         .data = resp.id
                     }
                 );
                 writeMsgAndExpectAck(
                     {
-                        .id = MY_ID,
+                        .id = MASTER_ID,
                         .message = INCOMING_CAPSULE,
                         .data = resp.data
                     }
@@ -179,21 +115,21 @@ void loop()
                    requestToCancel->state == ReadyToPull) {
                     writeMsgAndExpectAck(
                         {
-                            .id = MY_ID,
+                            .id = MASTER_ID,
                             .message = CLEAR_QUEUED,
                             .data = resp.id
                         }
                     );
                     writeMsgAndExpectAck(
                         {
-                            .id = MY_ID,
+                            .id = MASTER_ID,
                             .message = CLEAR_READY,
                             .data = resp.id
                         }
                     );
                     writeMsgAndExpectAck(
                         {
-                            .id = MY_ID,
+                            .id = MASTER_ID,
                             .message = CLEAR_INCOMING,
                             .data = requestToCancel->to
                         }
@@ -229,7 +165,7 @@ void loop()
                     startVacuum();
                     writeMsgAndExpectAck(
                         {
-                            .id = MY_ID,
+                            .id = MASTER_ID,
                             .message = READY_TO_PULL,
                             .data = curr->from
                         }

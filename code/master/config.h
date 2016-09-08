@@ -3,6 +3,8 @@
 
 #include "path.h"
 #include "request.h"
+#include "client.h"
+#include "message.h"
 
 // The ID of the vacuum
 #define VACUUM_ID 1

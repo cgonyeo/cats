@@ -1,3 +1,5 @@
+#include "config.h"
+
 // Marks the router with the given id as having finished its configuration for
 // the current request. Will select the fromPath or the toPath depending on the
 // state of the request.
@@ -79,7 +81,7 @@ void configureForPath(struct Path p) {
         }
         writeMsgAndExpectAck(
             {
-                .id = MY_ID,
+                .id = MASTER_ID,
                 .message = msgToSend,
                 .data = p.pathNodes[i].id
             }
@@ -110,7 +112,7 @@ void configVacuum(VacuumState state) {
     }
     writeMsgAndExpectAck(
         {
-            .id = MY_ID,
+            .id = MASTER_ID,
             .message = msg,
             .data = VACUUM_ID
         }
@@ -121,7 +123,7 @@ void configVacuum(VacuumState state) {
 void startVacuum() {
     writeMsgAndExpectAck(
         {
-            .id = MY_ID,
+            .id = MASTER_ID,
             .message = VACUUM_ON,
             .data = VACUUM_ID
         }
@@ -132,7 +134,7 @@ void startVacuum() {
 void stopVacuum() {
     writeMsgAndExpectAck(
         {
-            .id = MY_ID,
+            .id = MASTER_ID,
             .message = VACUUM_OFF,
             .data = VACUUM_ID
         }

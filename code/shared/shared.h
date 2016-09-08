@@ -1,6 +1,20 @@
 #ifndef CATS_SHARED
 #define CATS_SHARED
 
+#include <Arduino.h>
+#include <SoftwareSerial.h>
+
+#define MASTER_ID 0
+
+// Stuff for the RS485 communications
+#define SSerialRX        10  //Serial Receive pin
+#define SSerialTX        11  //Serial Transmit pin
+#define SSerialTxControl 3   //RS485 Direction control
+#define RS485Transmit    HIGH
+#define RS485Receive     LOW
+#define Pin13LED         13
+extern SoftwareSerial RS485Serial; // RX, TX
+
 // Master -> Client Messages
 #define STATUS_UPDATE    0x00
 #define CHANGE_TO_TUBE_0 0x01
@@ -28,5 +42,15 @@
 #define ERROR                  0x04
 #define NEW_REQUEST            0x05
 #define CANCEL_REQUEST         0x06
+
+// A Message represents a message sent over the wire.
+struct Message {
+    uint8_t id;      // The sender of the message
+    uint8_t message; // The message type (see #define's earlier in this file)
+    uint8_t data;    // An arbitrary byte of data, meaning dependent on type
+};
+
+void writeMsg(Message msg);
+Message getMsg();
 
 #endif

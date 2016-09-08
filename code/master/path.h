@@ -1,7 +1,8 @@
 #ifndef PATH
 #define PATH
 
-#include <SoftwareSerial.h>
+#include "shared/shared.h"
+#include "client.h"
 
 // A Path (which includes PathNodes) represents the path a capsule will follow
 // through the system. Each request results in two paths: one from a terminal

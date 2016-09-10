@@ -24,6 +24,6 @@ struct Path {
     struct PathNode *pathNodes; // The nodes of this path
 };
 
-struct Path findPath(uint8_t id);
+struct Path findPath(Client client, uint8_t id);
 
 #endif

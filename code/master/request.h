@@ -60,12 +60,13 @@ struct Request {
     RequestState state;   // The current state of this request
 };
 
-void addRequest(uint8_t from, uint8_t to);
+void addRequest(Client client, uint8_t from, uint8_t to);
 void finishRequest();
 struct Request *getRequest(uint8_t from);
 void cancelRequest(uint8_t from);
 struct Request *currentRequest();
 
 extern int numRequests;
+extern Request *requests; // Only extern for testing purposes!! Don't use!
 
 #endif

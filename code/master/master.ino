@@ -4,11 +4,21 @@
 #include "request.h"
 #include "config.h"
 #include "message.h"
+#include "tests.h"
 
 // setup, as per arduino tooling, runs once when the arduino starts.
 void setup()
 {
     Serial.begin(9600);
+
+    bool testsPassed = runTests();
+    if(!testsPassed) {
+        Serial.println("Tests failed!!!!!");
+        // Signal to user failure
+        while(1) {
+            delay(1000);
+        }
+    }
 
     initClients();
 
@@ -24,16 +34,13 @@ void setup()
 
 
     Serial.println("here's the path to terminal with id 4:");
-    struct Path p = findPath(4);
+    struct Path p = findPath(clientTree, 4);
     for(int i = 0; i < p.numNodes; i++) {
         Serial.print(" - id:");
         Serial.print(p.pathNodes[i].id);
         Serial.print(" tube:");
         Serial.println(p.pathNodes[i].tube);
     }
-
-
-
 
     pinMode(Pin13LED, OUTPUT);   
     pinMode(SSerialTxControl, OUTPUT);    
@@ -96,7 +103,7 @@ void loop()
                         .data = resp.data
                     }
                 );
-                addRequest(resp.id, resp.data);
+                addRequest(clientTree, resp.id, resp.data);
                 break;
             }
             case CANCEL_REQUEST: {

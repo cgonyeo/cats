@@ -21,6 +21,6 @@ struct Path findPathHelper(uint8_t id, Client tree, struct Path p) {
 }
 
 // findPath will find a Path from the root of the clientTree to the given id.
-struct Path findPath(uint8_t id) {
-    return findPathHelper(id, clientTree, {0, NULL});
+struct Path findPath(Client client, uint8_t id) {
+    return findPathHelper(id, client, {0, NULL});
 }

@@ -21,7 +21,7 @@ void markConfigComplete(uint8_t id) {
 // A client has detected a packet! This function marks the packet having
 // reached the client with the given id in the current request.
 void markPacketReached(uint8_t id) {
-    if(numRequests == 0) {
+    if(getNumRequests() == 0) {
         // There are no requests?!?
         return;
     }

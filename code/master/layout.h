@@ -24,6 +24,6 @@ struct Client {
     bool        isUnreachable; // Whether or not this client is unreachable.
 };
 
-extern Client clientTree;
+extern const Client clientTree;
 
 #endif

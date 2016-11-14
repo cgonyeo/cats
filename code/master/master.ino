@@ -21,6 +21,7 @@ void setup()
     }
 
     initClients();
+    initRequestQueue();
 
     Serial.print("System is configured for ");
     Serial.print(numClients);
@@ -154,7 +155,7 @@ void loop()
 
     // Ok, we've asked all the clients for their updates. If there are any
     // active requests, let's see if we need to do anything for it.
-    if(numRequests > 0) {
+    if(getNumRequests() > 0) {
         Request *curr = currentRequest();
         switch(curr->state) {
             case Queued:

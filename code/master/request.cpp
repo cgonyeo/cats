@@ -1,10 +1,16 @@
 #include "request.h"
 #include "path.h"
 
-// The number of requests currently queued (this includes the active request),
-// and the list of requests.
+struct Request *requestStart = NULL;
+
+int requestHead = 0;
+int maxRequests = 4;
 int numRequests = 0;
-struct Request *requests = NULL;
+
+// Initializes the requests circular queue
+void initRequestQueue() {
+    requestStart = (struct Request *)malloc(maxRequests * sizeof(struct Request));
+}
 
 // Adds a request with from as the starting terminal and to as the ending
 // terminal. Does nothing if a request with a start of from is already queued.
@@ -25,24 +31,35 @@ void addRequest(Client client, uint8_t from, uint8_t to) {
             .packetFinished = false,
             .state = Queued
         };
+    int requestLoc = (requestHead + numRequests) % maxRequests;
     numRequests++;
-    requests = (Request *)realloc(requests, numRequests);
-    memcpy(&requests[numRequests-1], &r, sizeof(struct Request));
+    memcpy((requestStart + requestLoc), &r, sizeof(struct Request));
+
+    Serial.println("fuck");
+    //Serial.print("Just added request to loc: "); Serial.println(requestLoc);
+    //Serial.print("New numRequests: "); Serial.println(numRequests);
+    //Serial.print("New request was from: "); Serial.println((requestStart+requestLoc)->from);
 }
 
 // Removes the request from the front of the queue.
 void finishRequest() {
+    requestHead = (requestHead + 1) % maxRequests;
     numRequests--;
-    memcpy(requests, requests++, numRequests * sizeof(struct Request));
-    requests = (Request *)realloc(requests, numRequests);
+    if((requestStart + requestHead)->state == Cancelled) {
+        // We just advanced to a cancelled request. Let's remove it too.
+        finishRequest();
+    }
 }
 
 // Gets the request that has from as the starting point. Returns NULL if no
 // such request exists.
 struct Request *getRequest(uint8_t from) {
-    for(int i = 0; i < numRequests; i++) {
-        if(requests[i].from == from && requests[i].state != Cancelled) {
-            return &requests[i];
+    int i = requestHead;
+    while(i != (requestHead + numRequests) % maxRequests) {
+        i = (i + 1) % maxRequests;
+        struct Request *r = requestStart + i;
+        if(r->from == from && r->state != Cancelled) {
+            return r;
         }
     }
     return NULL;
@@ -50,13 +67,25 @@ struct Request *getRequest(uint8_t from) {
 
 // Marks the request that has from as its starting point as cancelled.
 void cancelRequest(uint8_t from) {
-    for(int i = 0; i < numRequests; i++) {
-        if(requests[i].from == from) {
-            requests[i].state = Cancelled;
+    int i = requestHead;
+    while(i != (requestHead + numRequests) % maxRequests) {
+        i = (i + 1) % maxRequests;
+        struct Request *r = requestStart + i;
+        if(r->from == from && r->state != Cancelled) {
+            r->state = Cancelled;
         }
     }
 }
 
 struct Request *currentRequest() {
-    return &requests[0];
+    return requestStart + requestHead;
+}
+
+int getNumRequests() {
+    return numRequests;
+}
+
+void resetRequests() {
+    requestHead = 0;
+    numRequests = 0;
 }

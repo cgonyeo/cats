@@ -129,7 +129,7 @@ bool testAddRequest() {
     // Add one request
     uint8_t from = 3;
     uint8_t to = 6;
-    addRequest(testClient, from, to);
+    addRequest(&testClient, from, to);
     if(getNumRequests() != 1) {
         return error("Bad value for getNumRequests() #1!");
     }
@@ -142,7 +142,7 @@ bool testAddRequest() {
     // Add another request
     from = 6;
     to = 3;
-    addRequest(testClient, from, to);
+    addRequest(&testClient, from, to);
     if(getNumRequests() != 2) {
         return error("Bad value for getNumRequests() #2!");
     }
@@ -155,7 +155,7 @@ bool testAddRequest() {
     // Add a request with an existing from
     from = 6;
     to = 5;
-    addRequest(testClient, from, to);
+    addRequest(&testClient, from, to);
     if(getNumRequests() != 2) {
         return error("Bad value for getNumRequests() #3!");
     }

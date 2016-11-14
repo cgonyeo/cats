@@ -61,7 +61,7 @@ struct Request {
 };
 
 void initRequestQueue();
-void addRequest(Client client, uint8_t from, uint8_t to);
+void addRequest(const Client *client, uint8_t from, uint8_t to);
 void finishRequest();
 struct Request *getRequest(uint8_t from);
 void cancelRequest(uint8_t from);

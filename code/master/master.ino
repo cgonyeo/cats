@@ -35,7 +35,7 @@ void setup()
 
 
     Serial.println("here's the path to terminal with id 4:");
-    struct Path p = findPath(clientTree, 4);
+    struct Path p = findPath(&clientTree, 4);
     for(int i = 0; i < p.numNodes; i++) {
         Serial.print(" - id:");
         Serial.print(p.pathNodes[i].id);
@@ -104,7 +104,7 @@ void loop()
                         .data = resp.data
                     }
                 );
-                addRequest(clientTree, resp.id, resp.data);
+                addRequest(&clientTree, resp.id, resp.data);
                 break;
             }
             case CANCEL_REQUEST: {

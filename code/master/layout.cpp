@@ -1,4 +1,3 @@
-#include <avr/pgmspace.h>
 #include "layout.h"
 
 // The clientTree is the tree of all clients available in the system. It is
@@ -23,7 +22,7 @@
 //
 // Each id _must_ be unique! Ids 0 and 1 are reserved for the master and the
 // vacuum.
-const PROGMEM Client clientTree =
+const Client clientTree =
     {
         .id = 2,
         .type = Router,

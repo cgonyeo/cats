@@ -14,7 +14,7 @@ void initRequestQueue() {
 
 // Adds a request with from as the starting terminal and to as the ending
 // terminal. Does nothing if a request with a start of from is already queued.
-void addRequest(Client client, uint8_t from, uint8_t to) {
+void addRequest(const Client *client, uint8_t from, uint8_t to) {
     Request *existing = getRequest(from);
     if(existing != NULL) {
         // We already have a request in the queue from this guy!

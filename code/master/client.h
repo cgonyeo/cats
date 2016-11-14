@@ -9,10 +9,10 @@
 extern Client *flattenedClientTree;
 extern int numClients;
 
-void walkTree(Client tree, void (*walkFunc) (Client, void *), void *data);
-void clientCounter(Client c, void *data);
-void flattener(Client c, void *data);
+void walkTree(const Client *tree, void (*walkFunc) (const Client *, void *), void *data);
+void clientCounter(const Client *c, void *data);
+void flattener(const Client *c, void *data);
 void initClients();
-bool hasChild(uint8_t id, Client tree);
+bool hasChild(uint8_t id, const Client *tree);
 
 #endif

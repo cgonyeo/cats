@@ -10,10 +10,11 @@
 void setup()
 {
     Serial.begin(9600);
+    Serial.println(F("this is a test"));
 
     bool testsPassed = runTests();
     if(!testsPassed) {
-        Serial.println("Tests failed!!!!!");
+        Serial.println(F("Tests failed!!!!!"));
         // Signal to user failure
         while(1) {
             delay(1000);
@@ -23,23 +24,23 @@ void setup()
     initClients();
     initRequestQueue();
 
-    Serial.print("System is configured for ");
+    Serial.print(F("System is configured for "));
     Serial.print(numClients);
-    Serial.println(" clients.");
+    Serial.println(F(" clients."));
 
-    Serial.println("These are their names:");
+    Serial.println(F("These are their names:"));
     for(int i = 0; i < numClients; i++) {
-        Serial.print(" - ");
+        Serial.print(F(" - "));
         Serial.println(flattenedClientTree[i].label);
     }
 
 
-    Serial.println("here's the path to terminal with id 4:");
+    Serial.println(F("here's the path to terminal with id 4:"));
     struct Path p = findPath(&clientTree, 4);
     for(int i = 0; i < p.numNodes; i++) {
-        Serial.print(" - id:");
+        Serial.print(F(" - id:"));
         Serial.print(p.pathNodes[i].id);
-        Serial.print(" tube:");
+        Serial.print(F(" tube:"));
         Serial.println(p.pathNodes[i].tube);
     }
 

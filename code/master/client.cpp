@@ -33,7 +33,11 @@ void initClients() {
     walkTree(&clientTree, clientCounter, &data);
     numClients = data;
 
+    Serial.println(F("MALLOC: client tree"));
     flattenedClientTree = (Client *) malloc(numClients * sizeof(Client *));
+    if(flattenedClientTree == NULL) {
+        Serial.println(F("holy shitfuck"));
+    }
     data = 0;
     walkTree(&clientTree, flattener, &data);
 }

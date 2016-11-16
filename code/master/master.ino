@@ -50,7 +50,7 @@ void setup()
     digitalWrite(SSerialTxControl, RS485Receive);  // Init Transceiver   
 
     // Start the software serial port, to another device
-    RS485Serial.begin(4800);   // set the data rate 
+    //RS485Serial.begin(4800);   // set the data rate 
 }
 
 // loop, as per arduino tooling, runs repeatedly after setup is complete.
@@ -105,7 +105,8 @@ void loop()
                         .data = resp.data
                     }
                 );
-                addRequest(&clientTree, resp.id, resp.data);
+                bool success = addRequest(&clientTree, resp.id, resp.data);
+                //TODO: use success
                 break;
             }
             case CANCEL_REQUEST: {

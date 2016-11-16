@@ -3,9 +3,13 @@
 #include "request.h"
 #include "path.h"
 
+#define CATS_TESTS
+
+#ifdef CATS_TESTS
+
 //#define TESTS_CLIENT
-#define TESTS_REQUEST
-//#define TESTS_PATH
+//#define TESTS_REQUEST
+#define TESTS_PATH
 
 Client testClient = 
     {
@@ -88,6 +92,7 @@ bool testFlattener() {
             return error(F("Flattened incorrectly!"));
         }
     }
+    free(flattenedClientTree);
     flattenedClientTree = NULL;
     Serial.println(F("testFlattener succeeded"));
     return true;
@@ -119,6 +124,7 @@ bool runClientTests() {
     success = success && testFlattener();
     success = success && testHasChild();
     return success;
+}
 #endif
 
 /*************************
@@ -127,10 +133,14 @@ bool runClientTests() {
 #ifdef TESTS_REQUEST
 bool testAddRequest() {
     Serial.println(F("Running testAddRequest"));
+    bool success;
     // Add one request
     uint8_t from = 3;
     uint8_t to = 6;
-    addRequest(&testClient, from, to);
+    success = addRequest(&testClient, from, to);
+    if(!success) {
+        return error(F("Adding request failed #1!"));
+    }
     if(getNumRequests() != 1) {
         return error(F("Bad value for getNumRequests() #1!"));
     }
@@ -143,7 +153,10 @@ bool testAddRequest() {
     // Add another request
     from = 6;
     to = 3;
-    addRequest(&testClient, from, to);
+    success = addRequest(&testClient, from, to);
+    if(!success) {
+        return error(F("Adding request failed #2!"));
+    }
     if(getNumRequests() != 2) {
         return error(F("Bad value for getNumRequests() #2!"));
     }
@@ -156,7 +169,10 @@ bool testAddRequest() {
     // Add a request with an existing from
     from = 6;
     to = 5;
-    addRequest(&testClient, from, to);
+    success = addRequest(&testClient, from, to);
+    if(!success) {
+        return error(F("Adding request failed #3!"));
+    }
     if(getNumRequests() != 2) {
         return error(F("Bad value for getNumRequests() #3!"));
     }
@@ -169,8 +185,15 @@ bool testFinishRequest() {
     Serial.println(F("Running testFinishRequest"));
     uint8_t from = 3;
     uint8_t to = 6;
-    addRequest(&testClient, to, from);
-    addRequest(&testClient, from, to);
+    bool success;
+    success = addRequest(&testClient, to, from);
+    if(!success) {
+        return error(F("Adding request failed #1!"));
+    }
+    success = addRequest(&testClient, from, to);
+    if(!success) {
+        return error(F("Adding request failed #1.5!"));
+    }
     finishRequest();
     if(getNumRequests() != 1) {
         return error(F("Bad number of requests #1!"));
@@ -192,8 +215,15 @@ bool testGetRequest() {
     Serial.println(F("Running testGetRequest"));
     uint8_t from = 3;
     uint8_t to = 6;
-    addRequest(&testClient, to, from);
-    addRequest(&testClient, from, to);
+    bool success;
+    success = addRequest(&testClient, to, from);
+    if(!success) {
+        return error(F("Adding request failed #1!"));
+    }
+    success = addRequest(&testClient, from, to);
+    if(!success) {
+        return error(F("Adding request failed #1.5!"));
+    }
     Request *r = getRequest(from);
     if(r->from != from || r->to != to) {
         return error(F("getRequest returned wrong request!"));
@@ -211,8 +241,15 @@ bool testCancelRequest() {
     Serial.println(F("Running testCancelRequest"));
     uint8_t from = 3;
     uint8_t to = 6;
-    addRequest(&testClient, to, from);
-    addRequest(&testClient, from, to);
+    bool success;
+    success = addRequest(&testClient, to, from);
+    if(!success) {
+        return error(F("Adding request failed #1!"));
+    }
+    success = addRequest(&testClient, from, to);
+    if(!success) {
+        return error(F("Adding request failed #1.5!"));
+    }
     cancelRequest(from);
     finishRequest(); // Finishing the request should clear out the cancelled reqest too
     if(getNumRequests() != 0) {
@@ -246,6 +283,7 @@ bool testFindPath() {
         return error(F("wrong number of nodes"));
     }
     if(p->pathNodes[0].id != 2) {
+        Serial.print(p->pathNodes[0].id); Serial.println(F(": PathNode 0 id"));
         return error(F("wrong path"));
     }
     if(p->pathNodes[0].tube != 0) {
@@ -264,11 +302,14 @@ bool runPathTests() {
 #endif
 
 
+#endif
+
 bool runTests() {
+    bool success = true;
+#ifdef CATS_TESTS
     Serial.println("hello world");
     Serial.println(F("-----------------"));
     Serial.println(F("Running all tests"));
-    bool success = true;
 #ifdef TESTS_CLIENT
     success = success && runClientTests();
 #endif
@@ -277,6 +318,7 @@ bool runTests() {
 #endif
 #ifdef TESTS_PATH
     success = success && runPathTests();
+#endif
 #endif
     return success;
 }

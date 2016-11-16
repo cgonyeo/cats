@@ -60,7 +60,7 @@ struct Request {
     RequestState state;   // The current state of this request
 };
 
-void addRequest(const Client *client, uint8_t from, uint8_t to);
+bool addRequest(const Client *client, uint8_t from, uint8_t to);
 void finishRequest();
 struct Request *getRequest(uint8_t from);
 void cancelRequest(uint8_t from);

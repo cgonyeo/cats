@@ -10,14 +10,18 @@ int numRequests = 0;
 
 // Adds a request with from as the starting terminal and to as the ending
 // terminal. Does nothing if a request with a start of from is already queued.
-void addRequest(const Client *client, uint8_t from, uint8_t to) {
+bool addRequest(const Client *client, uint8_t from, uint8_t to) {
+    if(numRequests > maxRequests) {
+        return false;
+    }
     Request *existing = getRequest(from);
     if(existing != NULL) {
         // We already have a request in the queue from this guy!
         // Let's just ignore this.
-        return;
+        return true;
     }
-    Request r =
+    int requestLoc = (requestHead + numRequests) % maxRequests;
+    requestStart[requestLoc] =
         {
             .from = from,
             .to = to,
@@ -27,9 +31,9 @@ void addRequest(const Client *client, uint8_t from, uint8_t to) {
             .packetFinished = false,
             .state = Queued
         };
-    int requestLoc = (requestHead + numRequests) % maxRequests;
     numRequests++;
-    memcpy((requestStart + requestLoc), &r, sizeof(struct Request));
+    Serial.println(F("done adding request"));
+    return true;
 }
 
 // Removes the request from the front of the queue.
@@ -40,6 +44,7 @@ void finishRequest() {
     numRequests--;
     if((requestStart + requestHead)->state == Cancelled) {
         // We just advanced to a cancelled request. Let's remove it too.
+        Serial.println(F("next one is cancelled, nuke it"));
         finishRequest();
     }
 }

@@ -22,7 +22,6 @@ void setup()
     }
 
     initClients();
-    initRequestQueue();
 
     Serial.print(F("System is configured for "));
     Serial.print(numClients);
@@ -36,13 +35,14 @@ void setup()
 
 
     Serial.println(F("here's the path to terminal with id 4:"));
-    struct Path p = findPath(&clientTree, 4);
-    for(int i = 0; i < p.numNodes; i++) {
+    struct Path *p = findPath(&clientTree, 4);
+    for(int i = 0; i < p->numNodes; i++) {
         Serial.print(F(" - id:"));
-        Serial.print(p.pathNodes[i].id);
+        Serial.print(p->pathNodes[i].id);
         Serial.print(F(" tube:"));
-        Serial.println(p.pathNodes[i].tube);
+        Serial.println(p->pathNodes[i].tube);
     }
+    freePath(p);
 
     pinMode(Pin13LED, OUTPUT);   
     pinMode(SSerialTxControl, OUTPUT);    
@@ -195,7 +195,7 @@ void loop()
                 // The top request is pulling. Check if the capsule has reached
                 // the root of the system, and if it has stop the vacuum and
                 // configure the system for pushing.
-                if(curr->fromPath.pathNodes[0].packetReached) {
+                if(curr->fromPath->pathNodes[0].packetReached) {
                     stopVacuum();
                     configureForPath(curr->toPath);
                     configVacuum(VPushing);

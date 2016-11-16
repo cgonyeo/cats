@@ -16,8 +16,8 @@ enum VacuumState {
 
 void markConfigComplete(uint8_t id);
 void markPacketReached(uint8_t id);
-void configureForPath(struct Path p);
-bool pathIsConfigured(struct Path p);
+void configureForPath(struct Path *p);
+bool pathIsConfigured(struct Path *p);
 void configVacuum(VacuumState state);
 void startVacuum();
 void stopVacuum();

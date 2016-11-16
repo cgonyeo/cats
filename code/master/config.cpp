@@ -5,15 +5,15 @@
 // state of the request.
 void markConfigComplete(uint8_t id) {
     Request *r = currentRequest();
-    struct Path p;
+    struct Path *p;
     if(r->state == ConfigForPull) {
         p = r->fromPath;
     } else {
         p = r->toPath;
     }
-    for(int i = 0; i < p.numNodes; i++) {
-        if(p.pathNodes[i].id == id) {
-            p.pathNodes[i].configured = true;
+    for(int i = 0; i < p->numNodes; i++) {
+        if(p->pathNodes[i].id == id) {
+            p->pathNodes[i].configured = true;
         }
     }
 }
@@ -34,15 +34,15 @@ void markPacketReached(uint8_t id) {
     }
     switch(type) {
         case Router: {
-            struct Path p;
+            struct Path *p;
             if(r->state == Pulling) {
                 p = r->fromPath;
             } else {
                 p = r->toPath;
             }
-            for(int i = 0; i < p.numNodes; i++) {
-                if(p.pathNodes[i].id == id) {
-                    p.pathNodes[i].packetReached = true;
+            for(int i = 0; i < p->numNodes; i++) {
+                if(p->pathNodes[i].id == id) {
+                    p->pathNodes[i].packetReached = true;
                 }
             }
             break;
@@ -70,10 +70,10 @@ void markPacketReached(uint8_t id) {
 
 // Given a Path, this function will send instructions to each router along the
 // path to configure themselves to the correct tube.
-void configureForPath(struct Path p) {
-    for(int i = 0; i < p.numNodes; i++) {
+void configureForPath(struct Path *p) {
+    for(int i = 0; i < p->numNodes; i++) {
         uint8_t msgToSend = 0xFF;
-        switch(p.pathNodes[i].tube) {
+        switch(p->pathNodes[i].tube) {
             case 0: msgToSend = CHANGE_TO_TUBE_0;
             case 1: msgToSend = CHANGE_TO_TUBE_1;
             case 2: msgToSend = CHANGE_TO_TUBE_2;
@@ -83,7 +83,7 @@ void configureForPath(struct Path p) {
             {
                 .id = MASTER_ID,
                 .message = msgToSend,
-                .data = p.pathNodes[i].id
+                .data = p->pathNodes[i].id
             }
         );
     }
@@ -91,10 +91,10 @@ void configureForPath(struct Path p) {
 
 // This function will determine whether or not the given path has completed its
 // configuration.
-bool pathIsConfigured(struct Path p) {
+bool pathIsConfigured(struct Path *p) {
     bool allConfigured = true;
-    for(int i = 0; i < p.numNodes; i++) {
-        allConfigured = allConfigured && p.pathNodes[i].configured;
+    for(int i = 0; i < p->numNodes; i++) {
+        allConfigured = allConfigured && p->pathNodes[i].configured;
     }
     return allConfigured;
 }

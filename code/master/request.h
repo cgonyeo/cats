@@ -46,11 +46,11 @@ struct Request {
 
     uint8_t to;           // The ID of the terminal the capsule will go to
 
-    struct Path fromPath; // The path the capsule will follow from the start to
-                          // the root of the system
+    struct Path *fromPath; // The path the capsule will follow from the start to
+                           // the root of the system
 
-    struct Path toPath;   // The path the capsule will follow from the root of
-                          // the system to the destination
+    struct Path *toPath;   // The path the capsule will follow from the root of
+                           // the system to the destination
 
     bool packetStarted;   // Whether or not the packet has started its journey
 
@@ -60,7 +60,6 @@ struct Request {
     RequestState state;   // The current state of this request
 };
 
-void initRequestQueue();
 void addRequest(const Client *client, uint8_t from, uint8_t to);
 void finishRequest();
 struct Request *getRequest(uint8_t from);

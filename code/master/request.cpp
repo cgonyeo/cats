@@ -1,16 +1,12 @@
 #include "request.h"
 #include "path.h"
 
-struct Request *requestStart = NULL;
+#define maxRequests 4
+
+struct Request requestStart[maxRequests];
 
 int requestHead = 0;
-int maxRequests = 4;
 int numRequests = 0;
-
-// Initializes the requests circular queue
-void initRequestQueue() {
-    requestStart = (struct Request *)malloc(maxRequests * sizeof(struct Request));
-}
 
 // Adds a request with from as the starting terminal and to as the ending
 // terminal. Does nothing if a request with a start of from is already queued.
@@ -34,15 +30,12 @@ void addRequest(const Client *client, uint8_t from, uint8_t to) {
     int requestLoc = (requestHead + numRequests) % maxRequests;
     numRequests++;
     memcpy((requestStart + requestLoc), &r, sizeof(struct Request));
-
-    Serial.println("fuck");
-    //Serial.print("Just added request to loc: "); Serial.println(requestLoc);
-    //Serial.print("New numRequests: "); Serial.println(numRequests);
-    //Serial.print("New request was from: "); Serial.println((requestStart+requestLoc)->from);
 }
 
 // Removes the request from the front of the queue.
 void finishRequest() {
+    freePath((requestStart+requestHead)->fromPath);
+    freePath((requestStart+requestHead)->toPath);
     requestHead = (requestHead + 1) % maxRequests;
     numRequests--;
     if((requestStart + requestHead)->state == Cancelled) {
@@ -86,6 +79,8 @@ int getNumRequests() {
 }
 
 void resetRequests() {
+    while(numRequests > 0) {
+        finishRequest();
+    }
     requestHead = 0;
-    numRequests = 0;
 }

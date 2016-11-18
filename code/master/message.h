@@ -3,7 +3,7 @@
 
 #include "shared/shared.h"
 
-Message writeMsgMaster(Message msg);
-void writeMsgAndExpectAck(Message msg);
+Message *writeMsgMaster(Message *msg);
+void writeMsgAndExpectAck(Message *msg);
 
 #endif

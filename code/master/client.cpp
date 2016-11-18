@@ -24,6 +24,7 @@ void clientCounter(const Client *c, void *data) {
 // expected to point to an int.
 void flattener(const Client *c, void *data) {
     int *index = (int *)data;
+    Serial.print(F("Adding: ")); Serial.println(c->label);
     flattenedClientTree[*index] = *c;
     *index = *index + 1;
 }
@@ -33,7 +34,6 @@ void initClients() {
     walkTree(&clientTree, clientCounter, &data);
     numClients = data;
 
-    Serial.println(F("MALLOC: client tree"));
     flattenedClientTree = (Client *) malloc(numClients * sizeof(Client *));
     if(flattenedClientTree == NULL) {
         Serial.println(F("holy shitfuck"));
@@ -49,7 +49,7 @@ bool hasChild(uint8_t id, const Client *tree) {
         return true;
     }
     for(int i = 0; i < tree->numChildren; i++) {
-        bool childHasChild = hasChild(id, &(tree->children[i]));
+        bool childHasChild = hasChild(id, tree->children + i);
         if(childHasChild) {
             return true;
         }

@@ -67,6 +67,7 @@ void cancelRequest(uint8_t from);
 struct Request *currentRequest();
 int getNumRequests();
 void resetRequests();
+void printRequests();
 
 
 #endif

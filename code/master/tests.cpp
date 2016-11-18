@@ -2,14 +2,15 @@
 #include "layout.h"
 #include "request.h"
 #include "path.h"
+#include "MemoryFree.h"
 
 #define CATS_TESTS
 
 #ifdef CATS_TESTS
 
-//#define TESTS_CLIENT
+#define TESTS_CLIENT
 //#define TESTS_REQUEST
-#define TESTS_PATH
+//#define TESTS_PATH
 
 Client testClient = 
     {
@@ -170,8 +171,8 @@ bool testAddRequest() {
     from = 6;
     to = 5;
     success = addRequest(&testClient, from, to);
-    if(!success) {
-        return error(F("Adding request failed #3!"));
+    if(success) {
+        return error(F("Adding request succeeded #3!"));
     }
     if(getNumRequests() != 2) {
         return error(F("Bad value for getNumRequests() #3!"));

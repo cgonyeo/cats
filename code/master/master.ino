@@ -1,3 +1,6 @@
+#include <TimeLib.h>
+#include <Time.h>
+
 #include "shared/shared.h"
 #include "client.h"
 #include "path.h"
@@ -33,9 +36,19 @@ void setup()
         Serial.println(flattenedClientTree[i].label);
     }
 
+    struct Path *p = findPath(&clientTree, 4);
+
+    Serial.print(F("System is configured for "));
+    Serial.print(numClients);
+    Serial.println(F(" clients."));
+
+    Serial.println(F("These are their names:"));
+    for(int i = 0; i < numClients; i++) {
+        Serial.print(F(" - "));
+        Serial.println(flattenedClientTree[i].label);
+    }
 
     Serial.println(F("here's the path to terminal with id 4:"));
-    struct Path *p = findPath(&clientTree, 4);
     for(int i = 0; i < p->numNodes; i++) {
         Serial.print(F(" - id:"));
         Serial.print(p->pathNodes[i].id);
@@ -44,13 +57,14 @@ void setup()
     }
     freePath(p);
 
+
     pinMode(Pin13LED, OUTPUT);   
     pinMode(SSerialTxControl, OUTPUT);    
 
     digitalWrite(SSerialTxControl, RS485Receive);  // Init Transceiver   
 
     // Start the software serial port, to another device
-    //RS485Serial.begin(4800);   // set the data rate 
+    RS485Serial.begin(4800);   // set the data rate 
 }
 
 // loop, as per arduino tooling, runs repeatedly after setup is complete.
@@ -59,15 +73,20 @@ void loop()
     // Iterate over each client, asking it for a status update.
     for(int i = 0; i < numClients; i++) {
         // Ask the next guy for their status
-        Message resp = writeMsgMaster(
+        Message m = 
             {
                 .id = MASTER_ID,
                 .message = STATUS_UPDATE,
                 .data = (uint8_t)flattenedClientTree[i].id
-            }
-        );
+            };
+        Message *resp = writeMsgMaster(&m);
+        if(resp == NULL) {
+            // This client timed out, let's skip it
+            Serial.print(F("This client timed out: ")); Serial.println(flattenedClientTree[i].label);
+            continue;
+        }
 
-        switch(resp.message) {
+        switch(resp->message) {
             case NOTHING:
                 // This client has nothing! Therefore we do nothing!
                 break;
@@ -76,12 +95,12 @@ void loop()
                 break;
             case ITEM_DETECTED:
                 // This client has detected a capsule move by it
-                markPacketReached(resp.id);
+                markPacketReached(resp->id);
                 break;
             case CONFIGURATION_COMPLETE:
                 // This client (presumably a router) has finished the
                 // configuration we requested.
-                markConfigComplete(resp.id);
+                markConfigComplete(resp->id);
                 break;
             case ERROR:
                 // TODO woah wtf
@@ -91,21 +110,21 @@ void loop()
                 // user. We should record it, tell the source that we have
                 // received the request, and the destination that they will
                 // have an incoming capsule.
-                writeMsgAndExpectAck(
+                Message m =
                     {
                         .id = MASTER_ID,
                         .message = REQUEST_QUEUED,
-                        .data = resp.id
-                    }
-                );
-                writeMsgAndExpectAck(
+                        .data = resp->id
+                    };
+                writeMsgAndExpectAck(&m);
+                m = 
                     {
                         .id = MASTER_ID,
                         .message = INCOMING_CAPSULE,
-                        .data = resp.data
-                    }
-                );
-                bool success = addRequest(&clientTree, resp.id, resp.data);
+                        .data = resp->data
+                    };
+                writeMsgAndExpectAck(&m);
+                bool success = addRequest(&clientTree, resp->id, resp->data);
                 //TODO: use success
                 break;
             }
@@ -115,7 +134,7 @@ void loop()
                 // if the capsule hasn't entered the system yet. Once the
                 // capsule has entered the system, the request is no longer
                 // cancellable.
-                Request *requestToCancel = getRequest(resp.id);
+                Request *requestToCancel = getRequest(resp->id);
                 if(requestToCancel == NULL) {
                     // This request doesn't exist! Let's just ignore this...
                     break;
@@ -123,28 +142,26 @@ void loop()
                 if(requestToCancel->state == Queued ||
                    requestToCancel->state == ConfigForPull ||
                    requestToCancel->state == ReadyToPull) {
-                    writeMsgAndExpectAck(
+                    Message m =
                         {
                             .id = MASTER_ID,
                             .message = CLEAR_QUEUED,
-                            .data = resp.id
-                        }
-                    );
-                    writeMsgAndExpectAck(
-                        {
+                            .data = resp->id
+                        };
+                    writeMsgAndExpectAck(&m);
+                    m = {
                             .id = MASTER_ID,
                             .message = CLEAR_READY,
-                            .data = resp.id
-                        }
-                    );
-                    writeMsgAndExpectAck(
-                        {
+                            .data = resp->id
+                        };
+                    writeMsgAndExpectAck(&m);
+                    m = {
                             .id = MASTER_ID,
                             .message = CLEAR_INCOMING,
                             .data = requestToCancel->to
-                        }
-                    );
-                    cancelRequest(resp.id);
+                        };
+                    writeMsgAndExpectAck(&m);
+                    cancelRequest(resp->id);
                 }
                 break;
             }
@@ -153,6 +170,8 @@ void loop()
                 // unexpected message
                 break;
         }
+        Serial.print(F("freeing a message: ")); Serial.println((int)resp);
+        free(resp);
     }
 
     // Ok, we've asked all the clients for their updates. If there are any
@@ -173,13 +192,13 @@ void loop()
                 if(pathIsConfigured(curr->fromPath)) {
                     // TODO check if vacuum is configured
                     startVacuum();
-                    writeMsgAndExpectAck(
+                    Message m =
                         {
                             .id = MASTER_ID,
                             .message = READY_TO_PULL,
                             .data = curr->from
-                        }
-                    );
+                        };
+                    writeMsgAndExpectAck(&m);
                     curr->state = ReadyToPull;
                 }
                 break;

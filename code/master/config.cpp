@@ -79,13 +79,13 @@ void configureForPath(struct Path *p) {
             case 2: msgToSend = CHANGE_TO_TUBE_2;
             case 3: msgToSend = CHANGE_TO_TUBE_3;
         }
-        writeMsgAndExpectAck(
+        Message m =
             {
                 .id = MASTER_ID,
                 .message = msgToSend,
                 .data = p->pathNodes[i].id
-            }
-        );
+            };
+        writeMsgAndExpectAck(&m);
     }
 }
 
@@ -110,33 +110,33 @@ void configVacuum(VacuumState state) {
             msg = CHANGE_TO_TUBE_1;
             break;
     }
-    writeMsgAndExpectAck(
+    Message m =
         {
             .id = MASTER_ID,
             .message = msg,
             .data = VACUUM_ID
-        }
-    );
+        };
+    writeMsgAndExpectAck(&m);
 }
 
 // Instructs the vacuum to start.
 void startVacuum() {
-    writeMsgAndExpectAck(
+    Message m =
         {
             .id = MASTER_ID,
             .message = VACUUM_ON,
             .data = VACUUM_ID
-        }
-    );
+        };
+    writeMsgAndExpectAck(&m);
 }
 
 // Instructs the vacuum to stop.
 void stopVacuum() {
-    writeMsgAndExpectAck(
+    Message m =
         {
             .id = MASTER_ID,
             .message = VACUUM_OFF,
             .data = VACUUM_ID
-        }
-    );
+        };
+    writeMsgAndExpectAck(&m);
 }

@@ -18,7 +18,8 @@ bool addRequest(const Client *client, uint8_t from, uint8_t to) {
     if(existing != NULL) {
         // We already have a request in the queue from this guy!
         // Let's just ignore this.
-        return true;
+        Serial.println(F("Received a duplicate request. Ignoring."));
+        return false;
     }
     int requestLoc = (requestHead + numRequests) % maxRequests;
     requestStart[requestLoc] =
@@ -32,12 +33,16 @@ bool addRequest(const Client *client, uint8_t from, uint8_t to) {
             .state = Queued
         };
     numRequests++;
-    Serial.println(F("done adding request"));
     return true;
 }
 
 // Removes the request from the front of the queue.
 void finishRequest() {
+    if(numRequests == 0) {
+        // There's no requests to finish?
+        Serial.println(F("Called finishRequest with empty request queue"));
+        return;
+    }
     freePath((requestStart+requestHead)->fromPath);
     freePath((requestStart+requestHead)->toPath);
     requestHead = (requestHead + 1) % maxRequests;
@@ -54,11 +59,11 @@ void finishRequest() {
 struct Request *getRequest(uint8_t from) {
     int i = requestHead;
     while(i != (requestHead + numRequests) % maxRequests) {
-        i = (i + 1) % maxRequests;
         struct Request *r = requestStart + i;
         if(r->from == from && r->state != Cancelled) {
             return r;
         }
+        i = (i + 1) % maxRequests;
     }
     return NULL;
 }
@@ -88,4 +93,19 @@ void resetRequests() {
         finishRequest();
     }
     requestHead = 0;
+}
+
+void printRequests() {
+    if(numRequests == 0) {
+        Serial.println(F("Request queue is empty"));
+        return;
+    }
+    int i = requestHead;
+    while(i != (requestHead + numRequests) % maxRequests) {
+        struct Request *r = requestStart + i;
+        Serial.print(F("Request ")); Serial.println(i);
+        Serial.print(F("	From:	")); Serial.println(r->from);
+        Serial.print(F("	To:	")); Serial.println(r->to);
+        i = (i + 1) % maxRequests;
+    }
 }
